@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPS</title>
+    <!-- Include Bootstrap CSS from CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include necessary libraries from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/styles.css') }}">
+</head>
+
+<body>
+    <header id="header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <h1 class="logo me-auto me-lg-0"><a href="index.html">HPS</a></h1>
+            <nav id="navbar">
+
+              
+                <a  href="/">Home</a>
+                <a class="active" href="/dashboard">Dashboard</a>
+                <a href="/home">Chatbot</a>
+                <a href="/about">About</a>
+                <a href="/feedback">Feedback</a>
+
+            </nav>
+            <div class="header-social-links">
+                <a href="#" class="twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="linkedin"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </header>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Sidebar Section -->
+                    <div class="col-lg-3 sidebar">
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/patients">Patients</a>
+                        <button class="dropdown-btn">Charts
+                            <i class="fa fa-caret-down"></i>
+                          </button>
+                          <div class="dropdown-container">
+                            <a href="/charts">Heart Charts</a>
+                            <a href="/PAD">PAD Charts</a>
+
+
+                          </div>
+                    </div>
+            </div>
+
+            <!-- Main Content Section -->
+            <main role="main" class="col-md-10 px-md-4 main-content">
+                <!-- Grid container for all charts -->
+          <div class ="charts">
+   
+               <h2 >PERIPHERAL ARTERIAL DISEASE (PAD) EDA</h2>
+               </div>
+                <div class="grid-containerch">
+              <!-- Donut in Grid 1 -->
+<!-- Donut in Grid 1 -->
+<div class="grid-itemch">
+    <canvas id="donutChart" width="200" height="100"></canvas>
+    <script>
+        var donutChartData = {{ donut_chart_data | tojson | safe }};
+        var ctxDonut = document.getElementById('donutChart').getContext('2d');
+        var donutChart = new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: donutChartData.labels,
+                datasets: [{
+                    data: donutChartData.values,
+                    backgroundColor: ['rgba(255, 0, 0, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+
+                }],
+            },
+            options: {
+                legend: {
+                    display: true,
+                    position: 'right',
+                    labels: {
+                        boxWidth: 15,  // Adjust the width of the legend color boxes
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+
+<!-- Line chart in Grid 2 -->
+<!-- Area Chart for BMI Distribution by Smoking Status -->
+<div class="grid-itemch">
+    <canvas id="areaChart" width="200" height="150"></canvas>
+    <script>
+        var areaChartData = {{ area_chart_data | tojson | safe }};
+        var ctxArea = document.getElementById('areaChart').getContext('2d');
+        var areaChart = new Chart(ctxArea, {
+            type: 'line',
+            data: {
+                labels: areaChartData.labels,
+                datasets: areaChartData.datasets.map(function (dataset) {
+                    // Set pointRadius and pointHoverRadius to 0 to remove markers
+                    return { ...dataset, pointRadius: 0, pointHoverRadius: 0 };
+                }),
+            },
+            options: {
+    scales: {
+        x: {
+            title: {
+                display: true,
+                text: 'Data Points',
+                color: 'black',
+            },
+            stacked: true,
+            ticks: {
+                color: 'black',
+            },
+        },
+        y: {
+            title: {
+                display: true,
+                text: 'BMI Distribution',
+                color: 'black',
+            },
+            stacked: true,
+            ticks: {
+                color: 'black',
+            },
+        },
+    },
+    legend: {
+        display: true,
+        position: 'right',
+        labels: {
+            boxWidth: 15,
+        },
+    },
+    title: {
+        display: true,
+        text: "BMI Distribution by Smoking Status",
+        fontSize: 16,
+        color: 'black',
+    },
+},
+
+        });
+    </script>
+</div>
+
+<!-- Bar chart for Cholesterol Level -->
+<div class="grid-itemch">
+    <canvas id="cholesterolLevelChart" width="200" height="150"></canvas>
+    <script>
+        var cholesterolLevelChartData = {{ cholesterol_chart_data | default('{"labels": [], "datasets": []}') | safe }};
+
+        var ctxCholesterolLevel = document.getElementById('cholesterolLevelChart').getContext('2d');
+        var cholesterolLevelChart = new Chart(ctxCholesterolLevel, {
+            type: 'bar',
+            data: cholesterolLevelChartData,
+            options: {
+    scales: {
+        x: {
+            stacked: true,
+            ticks: {
+                color: 'black',  // Set the x-axis label color to black
+            },
+            title: {
+                display: true,
+           
+                color: 'black',
+            },
+        },
+        y: {
+            stacked: true,
+            ticks: {
+                color: 'black',  // Set the y-axis label color to black
+            },
+            title: {
+                display: true,
+            
+                color: 'black',
+            },
+        },
+    },
+    legend: {
+        display: true,
+        position: 'right',
+        labels: {
+            boxWidth: 15,
+        },
+    },
+    title: {
+        display: true,
+        text: "Cholesterol Level Distribution",
+        fontSize: 16,
+        color: 'black',
+    },
+},
+
+        });
+    </script>
+</div>
+
+
+<!-- Bar chart for Stress Level -->
+<div class="grid-itemch">
+    <canvas id="stressLevelBarChart" width="200" height="150"></canvas>
+    <script>
+        var stressLevelBarChartData = {{ stress_bar_chart_data | default('{"labels": [], "datasets": []}') | safe }};
+
+        var ctxStressLevelBarChart = document.getElementById('stressLevelBarChart').getContext('2d');
+        var stressLevelBarChart = new Chart(ctxStressLevelBarChart, {
+            type: 'bar',
+            data: stressLevelBarChartData,
+            data: stressLevelBarChartData,
+options: {
+    scales: {
+        x: {
+            ticks: {
+                color: 'black',  // Set the x-axis label color to black
+            },
+            title: {
+                display: true,
+                color: 'black',
+            },
+        },
+        y: {
+            ticks: {
+                color: 'black',  // Set the y-axis label color to black
+            },
+            title: {
+                display: true,
+                color: 'black',
+            },
+        },
+    },
+    // Your other existing options here
+},
+
+        });
+    </script>
+</div>
+
+<!-- Age Histogram  -->
+<div class="grid-itemch">
+    <canvas id="ageHistogram" width="200" height="150"></canvas>
+    <script>
+        var ageHistogramData = {{ age_histogram_data | tojson | safe }};
+        var ctxAgeHistogram = document.getElementById('ageHistogram').getContext('2d');
+        var ageHistogram = new Chart(ctxAgeHistogram, {
+            type: 'bar',
+            data: {
+                labels: ageHistogramData.labels,
+                datasets: ageHistogramData.datasets,
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'Age',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Frequency',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+<!-- Line Chart for Physical Activity -->
+<div class="grid-itemch">
+    <canvas id="physicalActivityChart" width="200" height="150"></canvas>
+    <script>
+        var physicalActivityChartData = {
+            'labels': {{ data1.index.tolist() | tojson | safe }},
+            'datasets': [{
+                'label': 'Physical Activity',
+                'data': {{ data1['PhysicalActivity'].tolist() | tojson | safe }},
+                'backgroundColor': 'rgba(75, 192, 192, 0.6)',
+                'borderColor': 'rgba(75, 192, 192, 0.6)',
+                'borderWidth': 1,
+                'fill': false,
+            }],
+        };
+
+        var ctxPhysicalActivity = document.getElementById('physicalActivityChart').getContext('2d');
+        var physicalActivityChart = new Chart(ctxPhysicalActivity, {
+            type: 'line',
+            data: physicalActivityChartData,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Index',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Physical Activity',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+
+<!-- BMI Bar Chart -->
+<div class="grid-itemch">
+    <canvas id="bmiBarChart" width="200" height="150"></canvas>
+    <script>
+        var bmiBarChartData = {{ bmi_bar_chart_data | tojson | safe }};
+
+        var ctxBmiBarChart = document.getElementById('bmiBarChart').getContext('2d');
+        var bmiBarChart = new Chart(ctxBmiBarChart, {
+            type: 'bar',
+            data: bmiBarChartData,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Bins',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Mean BMI',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+
+<!-- Bar Chart for Diet -->
+<div class="grid-itemch">
+    <canvas id="dietBarChart" width="200" height="150"></canvas>
+    <script>
+        var dietBarChartData = {{ diet_bar_chart_data | tojson | safe }};
+        var ctxDietBarChart = document.getElementById('dietBarChart').getContext('2d');
+        var dietBarChart = new Chart(ctxDietBarChart, {
+            type: 'bar',
+            data: dietBarChartData,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Diet Type',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',  // Set x-axis label color to black
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Frequency',
+                            color: 'black',
+                        },
+                        ticks: {
+                            color: 'black',  // Set y-axis label color to black
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+
+
+
+
+                   
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

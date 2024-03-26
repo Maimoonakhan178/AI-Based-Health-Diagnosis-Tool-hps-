@@ -1,0 +1,574 @@
+###############################################IMPORTANT DEPENDENCIES################################################
+
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
+from datetime import datetime
+import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+import random, re
+from reportlab.lib.pagesizes import letter, inch
+
+
+##################################################INITIALIZING APP#######################################################
+
+app = Flask(_name_)
+
+##################################################KNOWLEDGE BASE ACCORDING TO DISEASES#######################################################
+
+questions = {
+    "heart_disease": [
+        ["To initiate the heart disease category, respond with 'yes.'","Begin with 'yes' if you want to explore questions related to heart disease.","Respond affirmatively with 'yes' to delve into heart disease inquiries.","If you want to discuss heart disease, start by saying 'yes.'","Indicate your interest in heart disease by responding positively with 'yes.'","To commence the heart disease section, reply with 'yes.'","Start the heart disease segment by affirming with 'yes.'","If you're interested in heart disease topics, begin with 'yes.'","Choose 'yes' to kick off the discussion on heart disease.","Respond with 'yes' to initiate questions related to heart disease."],
+        ["What is your age?", "How old are you?", "Can I know your age?", "May I ask your age?", "What's your age?", "Could you share your age with me?", "What year were you born?", "How many years have you lived?", "Could you tell me your exact age?", "What age are you currently?"],
+        ["What is your gender?", "Could you tell me your gender?", "Are you male or female?", "May I know your gender?", "What gender do you identify with?", "Can you specify your gender?", "Do you identify as male, female, or non-binary?", "What's your gender?", "Could you inform me about your gender identity?", "Which gender do you belong to?"],
+        ["What is your resting blood pressure?", "Could you share your resting BP reading?", "What's your blood pressure when resting?", "Can you tell me your current resting blood pressure?", "What is the reading of your blood pressure at rest?", "Could you inform me of your resting BP?", "What's your usual resting blood pressure?", "Can you provide your blood pressure measurement at rest?", "What was your last recorded resting blood pressure?", "Could you specify your resting blood pressure levels?"],
+        ["What is your serum cholesterol level?", "Can you provide your cholesterol level?", "What's your current cholesterol reading?", "May I know your serum cholesterol measurement?", "What is the level of your blood cholesterol?", "Could you tell me your cholesterol level?", "What's the count of your serum cholesterol?", "Can you inform me about your cholesterol levels?", "What are your cholesterol numbers like?", "Could you specify your serum cholesterol level?"],
+        ["Do you have fasting blood sugar above 120 mg/dL?", "Is your fasting glucose level over 120 mg/dL?", "Does your fasting blood sugar exceed 120 mg/dL?", "Is your blood sugar higher than 120 mg/dL when fasting?", "Could you tell me if your fasting blood glucose is above 120 mg/dL?", "What's your fasting blood sugar reading?", "Do you know if your fasting glucose is more than 120 mg/dL?", "Can you confirm if your fasting blood sugar is over 120 mg/dL?", "Is your blood sugar level high when fasting?", "Do you have elevated fasting blood sugar levels?"],
+        ["Describe the results of your resting electrocardiogram (ECG/EKG).", "Can you share your ECG/EKG results?", "What did your resting ECG/EKG show?", "Could you tell me about your ECG/EKG findings?", "What are the findings of your recent ECG/EKG?", "Can you explain the results of your electrocardiogram?", "What did the ECG/EKG reveal at rest?", "Can you detail the outcomes of your resting ECG/EKG?", "What were the results of your last ECG/EKG?", "Could you specify what your resting ECG/EKG indicated?"],
+        ["What is your maximum heart rate achieved during exercise?", "What's the highest heart rate you reach during exercise?", "Can you tell me your peak heart rate during physical activity?", "What heart rate do you achieve at maximum exercise?", "Could you specify your top heart rate when exercising?", "What's your max heart rate while working out?", "Can you inform me of your highest heart rate during exercise?", "What is the maximum heart rate you've recorded during physical exertion?", "How high does your heart rate go during intense exercise?", "What is the peak heart rate you've achieved during activity?"],
+        ["Do you experience exercise-induced angina?", "Do you have angina during exercise?", "Does physical activity cause you any chest pain or discomfort?", "Do you feel chest pain when exercising?", "Is there angina present during your workouts?", "Can you tell me if you experience chest pain during exercise?", "Does exercise trigger any chest discomfort for you?", "Do you suffer from angina when you're physically active?", "Is there chest pain associated with your exercise routines?", "Do you get angina symptoms during physical exertion?"],
+        ["What is the ST depression induced by exercise relative to rest?", "Can you describe any ST depression during exercise compared to rest?", "Is there a difference in ST depression when resting and during exercise?", "Could you tell me about the ST depression from exercise versus rest?", "What's the level of ST depression during exercise compared to when you're resting?", "Can you specify the ST depression changes from rest to exercise?", "How does the ST depression vary from resting to exercising?", "What are the differences in ST depression when at rest and during exercise?", "Could you explain the ST depression during physical activity compared to rest?", "What changes in ST depression do you notice between rest and exercise?"],
+        ["How many major vessels, as seen on fluoroscopy, are showing abnormalities?", "Can you specify the number of abnormal vessels in your fluoroscopy?", "What did your fluoroscopy reveal about major vessel abnormalities?", "Could you tell me how many major vessels are abnormal as seen on fluoroscopy?", "How many vessels are showing irregularities in your fluoroscopy results?", "Can you indicate the number of affected major vessels in the fluoroscopy?", "What's the count of abnormal major vessels in the fluoroscopy findings?", "How many major blood vessels are abnormal as per the fluoroscopy?", "Could you provide the number of major vessels with abnormalities on fluoroscopy?", "What are the fluoroscopy results regarding major vessel abnormalities?"],
+        ["Describe the type of chest pain you are experiencing.", "What kind of chest pain do you feel?", "Can you explain your chest pain symptoms?", "Could you describe the chest pain you're having?", "What is the nature of your chest pain?", "How would you describe the pain in your chest?", "What are the characteristics of your chest pain?", "Can you detail the chest pain you experience?", "What's the sensation of your chest pain like?", "Could you tell me more about the chest pain you're feeling?"],
+        ["Describe the slope of the peak exercise ST segment.", "Can you explain the peak exercise ST segment's slope?", "What's the characteristic of the peak ST segment during exercise?", "Could you detail the slope of your exercise ST segment?", "What does the peak exercise ST segment slope look like?", "Can you describe the ST segment slope at peak exercise?", "What are the features of the peak exercise ST segment's slope?", "Could you illustrate the slope of the ST segment during peak exercise?", "What is the appearance of the peak exercise ST segment slope?", "How would you describe the ST segment slope at the height of your exercise?"],
+        ["Do you have a known thalassemia type?", "What type of thalassemia, if any, do you have?", "Can you specify your thalassemia condition?", "Could you tell me which thalassemia type you have?", "What's your diagnosed type of thalassemia?", "Can you inform me about your thalassemia type?", "Do you know what type of thalassemia you possess?", "Could you specify the type of thalassemia you're diagnosed with?", "What kind of thalassemia are you dealing with?", "Can you detail the type of thalassemia you have?"],
+        ["INDEX FOR GENERATING REPORT"],
+        ["Wait, Report is generating . . .", "Hold on, compiling your report now...", "Please wait, your report is being prepared...", "Just a moment, generating your report...", "Processing, your report will be ready soon...", "One moment, creating your report...", "Report in progress, please wait...", "Compiling data for your report, hold on...", "Your report is being generated, please be patient...", "Almost there, finalizing your report..."]
+  ],
+    "PAD": [
+    ["To start the health assessment, respond with 'yes.'", "Begin with 'yes' if you want to explore questions related to your health.", "Respond affirmatively with 'yes' to delve into health-related inquiries.", "If you want to discuss your health, start by saying 'yes.'", "Indicate your interest in health by responding positively with 'yes.'", "To commence the health assessment, reply with 'yes.'", "Start the health segment by affirming with 'yes.'", "If you're interested in health topics, begin with 'yes.'", "Choose 'yes' to kick off the discussion on health.", "Respond with 'yes' to initiate questions related to your health."],
+    ["How old are you?", "What is your age?", "Could you provide your age?"],
+    ["Do you smoke?", "Are you a smoker?", "Have you been smoking recently?"],
+    ["What is your blood pressure reading?", "Have you checked your blood pressure lately?", "Do you know your current blood pressure levels?"],
+    ["Have you ever been diagnosed with Peripheral Artery Disease (PAD)?", "Are you aware of any diagnosis of PAD in your medical history?", "Has a healthcare professional ever told you that you have PAD?"],
+    ["Do you know your cholesterol levels?", "What is your current cholesterol level?", "Have you had your cholesterol checked recently?"],
+    ["How often do you engage in physical activity?", "Do you have a regular exercise routine?", "Are you physically active on a regular basis?"],
+    ["What is your BMI?", "Could you provide your current BMI?", "Have you calculated your BMI recently?"],
+    ["What is your gender?", "Are you male or female?", "Please specify your gender."],
+    ["Is there a history of PAD or other cardiovascular conditions in your family?", "Have any of your family members been diagnosed with PAD or related issues?", "Do you know if cardiovascular conditions run in your family?"],
+    ["What is your blood sugar level?", "Have you checked your blood sugar recently?", "Do you know your current blood sugar levels?"],
+    ["Can you describe your typical diet?", "What kind of foods do you usually consume?", "How would you characterize your dietary habits?"],
+    ["On a scale from 1 to 10, how would you rate your stress level?", "Do you often feel stressed?", "How do you manage stress in your daily life?"],
+    ["Would you describe your lifestyle as sedentary or active?", "How much time do you spend sitting or being inactive each day?", "Do you have a sedentary lifestyle or an active one?"],
+    ["INDEX FOR GENERATING REPORT"],
+    ["Wait, Report is generating . . .", "Hold on, compiling your report now...", "Please wait, your report is being prepared...", "Just a moment, generating your report...", "Processing, your report will be ready soon...", "One moment, creating your report...", "Report in progress, please wait...", "Compiling data for your report, hold on...", "Your report is being generated, please be patient...", "Almost there, finalizing your report..."]
+]
+}
+
+# Initial question index
+current_question_index = 0
+current_question_list = []
+user_responses = []
+prediction = ""
+
+#################################################### LOADING DATA #######################################################
+
+file_path = "C:\\Users\\Lenovo\\Downloads\\dataset.csv"
+df = pd.read_csv(file_path)
+
+#################################################### PREPROCESSING #######################################################
+
+df = pd.concat([df, pd.get_dummies(df['cp'], prefix="cp"), pd.get_dummies(df['thal'], prefix="thal"), pd.get_dummies(df['slope'], prefix="slope")], axis=1)
+df = df.drop(['cp', 'thal', 'slope'], axis=1)
+
+#################################################### Split the data into training and testing sets #############################################################
+
+y_data = df.target.values
+x_data = df.drop(['target'], axis=1)
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, random_state=42)
+
+################################################### Scale the input data ###########################################################################
+
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+
+###################################################  Train a Logistic Regression model ###################################################
+ 
+lr = LogisticRegression(C=0.01, class_weight='balanced', max_iter=100, multi_class='ovr', penalty='l2', solver='newton-cg', tol=0.0001, warm_start=True)
+lr.fit(x_train_scaled, y_train)
+#################################################### LOADING DATA #######################################################
+
+file_path_df1 = "PAD.csv"
+df1 = pd.read_csv(file_path_df1)
+
+#################################################### PREPROCESSING #######################################################
+
+# Assuming similar preprocessing steps for df1 as df
+df1 = pd.concat([df1, pd.get_dummies(df1['Gender'], prefix="Gender"), pd.get_dummies(df1['Diet'], prefix="Diet")], axis=1)
+df1 = df1.drop(['Gender', 'Diet'], axis=1)
+
+# Assuming 'DiagnosedPAD' is the target column in df1
+y_data_df1 = df1['DiagnosedPAD'].values
+x_data_df1 = df1.drop(['DiagnosedPAD'], axis=1)
+
+# Split the original data into training and testing sets
+x_train_df1, x_test_df1, y_train_df1, y_test_df1 = train_test_split(x_data_df1, y_data_df1, test_size=0.2, random_state=42)
+
+# Define preprocessing steps
+numeric_features = ['Age', 'BloodPressure', 'CholesterolLevel', 'PhysicalActivity', 'BMI', 'FamilyHistory', 'BloodSugarLevel', 'StressLevel', 'SedentaryLifestyle']
+categorical_features = ['Smoking']  # Remove 'Gender' and 'Diet' as they are already one-hot encoded
+
+numeric_transformer = StandardScaler()
+categorical_transformer = OneHotEncoder(drop='first')
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, numeric_features),
+        ('cat', categorical_transformer, categorical_features)
+    ])
+
+# Create a pipeline with preprocessing and model
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                             ('classifier', LogisticRegression(C=0.01, class_weight='balanced', max_iter=100, multi_class='ovr', penalty='l2', solver='newton-cg', tol=0.0001, warm_start=True))])
+
+# Fit the pipeline on the training data
+pipeline.fit(x_train_df1, y_train_df1)
+
+# Predict using the trained model
+predictions_df1 = pipeline.predict(x_data_df1)
+
+# Assuming you want to add predictions to df1
+df1['Predictions'] = predictions_df1
+
+
+
+################################################ HOME PAGE ######################################################################
+@app.route("/home")
+def home():
+    user_name = "Anas Shah" 
+    prob =  "89"#Replace "John" with the actual name you want to send
+    return render_template("index_custom.html", user_name=user_name, prob = prob)
+
+################################################ COMMUNICATING TO INDEX_CUSTOM.HTML PAGE ######################################################################
+
+@app.route("/get_response", methods=["POST"])
+def get_response():
+    global current_question_index, user_responses, current_question_list
+
+    user_response = request.form["user_message"]
+    
+    ######################CHECK SYMPTOMS########################
+    
+    if not current_question_list and current_question_index == 0:
+        if "sick" in user_response.lower():
+            
+            ######################  UPDATING JSON WITH RELATABLE DISEASE ########################
+             
+            current_question_list = questions["heart_disease"]
+            with open('credentials.json', 'r') as file:
+                data = json.load(file)
+            latest_user_info = get_latest_user(data)
+            latest_user_info['Disease to be predicted'] = "Heart Disease"
+
+            # Save the updated data back to the file
+            with open('credentials.json', 'w') as file:
+                json.dump(data, file, indent=2)
+                
+        ######################CHECK SYMPTOMS########################
+                
+        if "health" in user_response.lower():
+            current_question_list = questions["PAD"]
+            
+            ######################  UPDATING JSON WITH RELATABLE DISEASE ########################
+            
+            with open('credentials.json', 'r') as file:
+                data = json.load(file)
+            latest_user_info = get_latest_user(data)
+            latest_user_info['Disease to be predicted'] = "PAD Disease"
+
+            # Save the updated data back to the file
+            with open('credentials.json', 'w') as file:
+                json.dump(data, file, indent=2)
+
+    #########################################Check if the current question is in the prediction category##############################################
+    
+    if (current_question_list == questions["heart_disease"] and current_question_index == 0 and "Yes" in user_response.lower()) or (current_question_list == questions["PAD"] and current_question_index == 0 and "Yes" in user_response.lower()):
+        current_question = random.choice(current_question_list[current_question_index])
+    else:
+        current_question = random.choice(current_question_list[current_question_index])
+
+    if (current_question_list == questions["heart_disease"] and current_question_index == 0 and "no" in user_response.lower()) or (current_question_list == questions["PAD"] and current_question_index == 0 and "Yes" in user_response.lower()):
+        return {"bot_response": "If there's any assistance you need, feel free to ask!", "user_responses": user_responses}
+
+    bot_response, _ = custom_chatbot(current_question, user_response, current_question_index)
+    current_question_index = _
+
+    user_responses.append({"question": current_question, "response": user_response})
+
+    current_question_index += 1
+
+    if current_question_index >= len(current_question_list):
+        current_question_index = 0
+
+    return {"bot_response": bot_response, "user_responses": user_responses}
+
+##################################################### CHATBOT ##################################################3
+def custom_chatbot(question, user_response, current_question_index):
+    global user_responses
+    user_responses.append(user_response)
+    extracted_digits = re.findall(r'\b\d+\b', user_response)
+    if current_question_list == questions["heart_disease"]:
+        # Age
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 2
+            and (int(extracted_digits[0]) < 15 or int(extracted_digits[0]) > 80)
+        ):
+            current_question_index -= 1
+            return "Age should be between 15 and 80. Please provide correct details.", current_question_index
+
+        # #################### MALE FEMALE 3 ######################################
+        
+        # Add relevant conditions for Male/Female type questions
+        
+        #####################################################################
+
+        # "Type 0", "Type 1", "Type 2", "Type 3"
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 12
+            and (int(extracted_digits[0]) <= 0 or int(extracted_digits[0]) >= 3)
+        ):
+            current_question_index -= 1
+            return "Chest Pain Type should be between 0 and 2. Please provide correct details.", current_question_index
+
+        # Resting Blood Pressure
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 4
+            and (int(extracted_digits[0]) <= 94 or int(extracted_digits[0]) >= 200)
+        ):
+            current_question_index -= 1
+            return "Resting Blood Pressure should be between 94 and 200. Please provide correct details.", current_question_index
+
+        # "126, 564, 246"
+        # Cholesterol
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 5
+            and (int(extracted_digits[0]) <= 126 or int(extracted_digits[0]) >= 564)
+        ):
+            current_question_index -= 1
+            return "Cholesterol should be between 126 and 564. Please provide correct details.", current_question_index
+
+        ########################## MG/DL #######################################
+        
+        # Add relevant conditions for MG/DL questions
+        
+        #########################################################################
+
+        # 0, 1, 2
+        # Resting Electrocardiographic Results
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 7
+            and (int(extracted_digits[0]) <= 0 or int(extracted_digits[0]) >= 2)
+        ):
+            current_question_index -= 1
+            return "Resting Electrocardiographic Results should be between 0 and 2. Please provide correct details.", current_question_index
+
+        # 71, 202, 150
+        # Maximum Heart Rate Achieved
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 8
+            and (int(extracted_digits[0]) <= 71 or int(extracted_digits[0]) >= 202)
+        ):
+            current_question_index -= 1
+            return "Maximum Heart Rate Achieved should be between 71 and 202. Please provide correct details.", current_question_index
+
+        ########################## EXERCISE INDUCED ################################
+        
+        # Add relevant conditions for Exercise Induced questions
+        
+        ############################################################################
+
+        # 0.0, 6.2, 1.0
+        # ST Depression Induced by Exercise
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 10
+            and (int(extracted_digits[0]) <= 0.0 or int(extracted_digits[0]) >= 6.2)
+        ):
+            current_question_index -= 1
+            return "ST Depression Induced by Exercise should be between 0.0 and 6.2. Please provide correct details.", current_question_index
+
+        # 0, 4, 1
+        # Number of Major Vessels Colored by Fluoroscopy
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 11
+            and (int(extracted_digits[0]) <= 0 or int(extracted_digits[0]) >= 4)
+        ):
+            current_question_index -= 1
+            return "Number of Major Vessels Colored by Fluoroscopy should be between 0 and 4. Please provide correct details.", current_question_index
+
+        # "Slope 0", "Slope 1", "Slope 2"
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 13
+            and (int(extracted_digits[0]) <= 0 or int(extracted_digits[0]) >= 2)
+        ):
+            current_question_index -= 1
+            return "Slope Type should be between 0 and 2. Please provide correct details.", current_question_index
+
+        # # "Thal 0", "Thal 1", "Thal 2", "Thal 3"
+        if (
+            current_question_list == questions["heart_disease"]
+            and current_question_index == 14
+            and (int(extracted_digits[0]) <= 0 or int(extracted_digits[0]) >= 3)
+        ):
+            current_question_index -= 1
+            return "Thalasemia Type should be between 0 and 3. Please provide correct details.", current_question_index
+
+        # 0.0, 6.2, 1.0
+        if not user_response:
+            return "Please provide an answer to the question.", current_question_index
+        
+        # this is for checking if the list is left with 2 index means its time to predict disease 
+        if current_question_index == len(current_question_list) - 2:
+            
+            prediction_result = predict_heart_disease(user_responses,current_question_list)
+            return prediction_result,current_question_index
+        else:
+            return question, current_question_index
+    
+    if current_question_list == questions["PAD"]:
+        
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 2
+            and (int(extracted_digits[0]) < 15 or int(extracted_digits[0]) > 80)
+        ):
+            current_question_index -= 1
+            return "Age should be between 15 and 80. Please provide correct details.", current_question_index
+
+        # Smoking
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 3
+            and user_response.lower() not in ["yes", "no"]
+        ):
+            current_question_index -= 1
+            return "Please provide a valid response (Yes/No) for Smoking.", current_question_index
+
+        # Blood Pressure
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 4
+            and (int(extracted_digits[0]) < 80 or int(extracted_digits[0]) > 200)
+        ):
+            current_question_index -= 1
+            return "Blood Pressure should be between 80 and 200. Please provide correct details.", current_question_index
+
+        # Diagnosed PAD
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 5
+            and user_response.lower() not in ["yes", "no"]
+        ):
+            current_question_index -= 1
+            return "Please provide a valid response (Yes/No) for Diagnosed PAD.", current_question_index
+
+        # Cholesterol Level
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 6
+            and (int(extracted_digits[0]) < 100 or int(extracted_digits[0]) > 300)
+        ):
+            current_question_index -= 1
+            return "Cholesterol Level should be between 100 and 300. Please provide correct details.", current_question_index
+
+        # Physical Activity
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 6
+            and (float(extracted_digits[0]) < 1.0 or float(extracted_digits[0]) > 5.0)
+        ):
+            current_question_index -= 1
+            return "Physical Activity should be between 1.0 and 5.0. Please provide correct details.", current_question_index
+
+        # BMI
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 7
+            and (float(extracted_digits[0]) < 15.0 or float(extracted_digits[0]) > 40.0)
+        ):
+            current_question_index -= 1
+            return "BMI should be between 15.0 and 40.0. Please provide correct details.", current_question_index
+
+        # Gender
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 8
+            and user_response.lower() not in ["male", "female"]
+        ):
+            current_question_index -= 1
+            return "Please provide a valid response (Male/Female) for Gender.", current_question_index
+
+        # Family History
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 9
+            and user_response.lower() not in ["yes", "no"]
+        ):
+            current_question_index -= 1
+            return "Please provide a valid response (Yes/No) for Family History.", current_question_index
+
+        # Blood Sugar Level
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 10
+            and (float(extracted_digits[0]) < 70.0 or float(extracted_digits[0]) > 200.0)
+        ):
+            current_question_index -= 1
+            return "Blood Sugar Level should be between 70.0 and 200.0. Please provide correct details.", current_question_index
+
+        # Diet
+        valid_diets = ["high-fat", "balanced", "low-fiber"]
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 11
+            and user_response.lower() not in valid_diets
+        ):
+            current_question_index -= 1
+            return f"Please provide a valid response ({', '.join(valid_diets)}) for Diet.", current_question_index
+
+        # Stress Level
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 12
+            and (float(extracted_digits[0]) < 1.0 or float(extracted_digits[0]) > 10.0)
+        ):
+            current_question_index -= 1
+            return "Stress Level should be between 1.0 and 10.0. Please provide correct details.", current_question_index
+
+        # Sedentary Lifestyle
+        if (
+            current_question_list == questions["PAD"]
+            and current_question_index == 13
+            and user_response.lower() not in ["yes", "no"]
+        ):
+            current_question_index -= 1
+            return "Please provide a valid response (Yes/No) for Sedentary Lifestyle.", current_question_index
+
+        # Check if it's time to predict the disease
+        if current_question_index == len(current_question_list) - 2:
+            prediction_result = predict_heart_disease(user_responses,current_question_list)
+            return prediction_result, current_question_index
+        else:
+            return question, current_question_index
+    
+#################################### PREDICITNG DISEASE  ###################################
+
+def predict_heart_disease(user_responses,current_question_list):
+    print("USER - REPOSNSES : ", user_responses)
+    extracted_value = []
+    for i in user_responses:
+        input_string = i
+        digits = ''.join(filter(str.isdigit, input_string))
+        if digits:
+            extracted_integer = int(digits)
+            extracted_value.append(extracted_integer)
+            
+    if current_question_list == questions["heart_disease"]:
+        
+        ######################## JUST FOR CHECKING PREDICTION, ACRUALLY VALUES WILL VARIES ON USERS INPUT ######################################
+
+        user_data_df = [63, 1, 145, 233, 1, 0, 150, 0, 2.3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
+
+        #######################################3Scale the input data###################################################
+
+        user_data_scaled = scaler.transform([user_data_df])  # Notice the list inside transform
+
+        #################################### Make a prediction #######################################################
+        prediction = lr.predict_proba(user_data_scaled)
+        probability_of_positive_class = prediction[0][1]
+        y_prediction = lr.predict(x_test_scaled)  # Make predictions on the test set
+        accuracy = accuracy_score(y_test, y_prediction)
+        global probability
+        probability = round(probability_of_positive_class * 100, 2)
+
+        ########################## UPDATING JSON FILE WITH PREDICTION ##########################################
+
+        with open('credentials.json', 'r') as file:
+                data = json.load(file)
+        latest_user_info = get_latest_user(data)
+        latest_user_info['Prediction'] = probability
+
+                # Save the updated data back to the file
+        with open('credentials.json', 'w') as file:
+            json.dump(data, file, indent=2)
+        # Set a threshold (e.g., 0.5) to make a binary prediction
+        threshold = 0.5
+
+        if probability_of_positive_class >= threshold:
+            
+            return f"Our prediction suggests a potential risk of heart disease of {probability:.2f}%. Maintain your well-being with regular check-ups. The model's accuracy on the test set is {round(accuracy,2):.2%}. Say 'YES' to generate a report! "
+        else:
+            return f"Our prediction suggests a low risk of heart disease {probability:.2f}% . Maintain your well-being with regular check-ups. The model's accuracy on the test set is {round(accuracy,2):.2%}."
+
+    if current_question_list == questions["PAD"]:
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        ########################### SAME AS HEART #########################################################
+        
+        
+        
+        
+        
+        
+        
+        ##########################################     PAD  ###########################################################
+        pass
+
+
+##################################### Use a consistent file path for credentials ##############################################
+
+
+file_path = "credentials.json"  
+
+##################################### Function to load credentials from a file #################################################
+
+def load_credentials():
+    try:
+        with open(file_path, 'r') as json_file:
+            return json.load(json_file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        
+        # If the file doesn't exist or contains invalid JSON, return an empty dictionary
+        
+        return {'user': {}}
+    
+######################################### Function to save credentials to a file ################################################
+
+def save_credentials(credentials):
+    with open(file_path, 'w') as json_file:
+        json.dump(credentials, json_file, indent=4)

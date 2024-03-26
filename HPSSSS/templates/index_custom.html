@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/st.css') }}">
+
+</head>
+
+<body>
+    <header id="header">
+        <div class="content-fluid d-flex justify-content-between align-items-center">
+            <h1 class="logo me-auto me-lg-0"><a href="index.html">HPS</a></h1>
+            <nav id="navbar">
+
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a class="active" href="/home">Chatbot</a>
+                <a href="/about">About</a>
+                <a href="/feedback">Feedback</a>
+            </nav>
+            <div class="header-social-links">
+                <a href="#" class="twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="linkedin"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <video autoplay muted loop>
+        <source src="{{ url_for('static', filename='video.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div id="content">
+        <h1>MEDIDIAGNOSIS INSIGHT</h1>
+        <div id="chat-container" class="chat-move-in">
+            <div id="chat"></div>
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-button" onclick="sendMessage()">Send</button>
+        </div>
+
+
+    <div id="report-message">
+        <!-- Content of the report message will be displayed here -->
+    </div>
+
+    <script>
+        // Speak a message using the Web Speech API
+        function speak_report(message, spoken) {
+            var speechSynthesis = window.speechSynthesis;
+            var utterance = new SpeechSynthesisUtterance(message);
+
+            if (!spoken) {
+
+                speechSynthesis.speak(utterance);
+                spoken = true;
+
+            }
+
+            // You can customize voice, rate, and other properties here if needed
+            // utterance.voice = ...;
+            // utterance.rate = ...;
+
+
+        }
+        function sendEmail() {
+            // Assuming you have obtained the user_name and user_email values from the form
+            const user_name = '{{user_name}}';  // Replace with actual value
+            const user_email = '{{user_email}}';  // Replace with actual value
+
+            // Send a POST request to the Flask server to trigger the email sending
+            fetch('/send_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_name, user_email }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response from the server (if needed)
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function displayContentWithTypewriter(content) {
+            var lines = content.split('\n');
+            var lineIndex = 0;
+            var charIndex = 0;
+            var speed = 10; // Speed/duration of the typing effect in milliseconds
+            var spoken = false;
+
+            function type() {
+                if (lineIndex < lines.length) {
+                    var line = lines[lineIndex];
+                    if (charIndex < line.length) {
+                        // Check if the line contains '{{user_name}}', replace it with the actual user name
+                        if (line.includes('{{user_name}}')) {
+                            line = line.replace('{{user_name}}', '{{ user_name }}');
+                        }
+                        if (line.includes('{{prob}}')) {
+                            line = line.replace('{{prob}}', '{{ prob }}');
+                        }
+                        if (line.includes('{{hellow}}')) {
+                            line = line.replace('{{hellow}}', '{{ hellow }}');
+                        }
+                        document.getElementById("report-message").innerHTML += line.charAt(charIndex);
+                        charIndex++;
+
+                        // Add a delay before starting to speak the next line
+                        setTimeout(function () {
+                            speak_report("So, Here is your report!", spoken);
+                        }, 500); // Adjust the delay time (in milliseconds) as needed
+                    } else {
+                        document.getElementById("report-message").innerHTML += '<br>';
+                        lineIndex++;
+                        charIndex = 0;
+                    }
+                    setTimeout(type, speed);
+                }
+            }
+
+            type(); // Call the typing effect function
+        }
+
+        function showQuestionOrMessage(message, isUser = false) {
+            var messageElement = document.createElement("p");
+
+            if (isUser) {
+                messageElement.innerHTML = "User: " + message;
+            } else {
+                messageElement.innerHTML = "Bot: " + message;
+            }
+
+            document.getElementById("chat").appendChild(messageElement);
+            scrollToBottom();
+
+            // Check if the bot's message includes the low-risk prediction
+            if (!isUser && message.includes("thanks")) {
+                var chatContainer = document.getElementById("chat-container");
+                chatContainer.classList.add("move-chat"); // Apply the animation class to move the chat
+            }
+
+            // Speak the message
+            if (!isUser) {
+                speak(message);
+            }
+        }
+
+        function showQuestion(question) {
+            showQuestionOrMessage(question);
+        }
+
+        function sendMessage() {
+            var userMessage = document.getElementById("user-input").value;
+            document.getElementById("user-input").value = "";
+
+            // Display user message
+            showQuestionOrMessage(userMessage, true);
+
+            // Check if the user said "Thanks" and move the chat container if they did
+            if (userMessage.toLowerCase().includes("thanks")) {
+                // Add a delay of 1 second (1000 milliseconds)
+                setTimeout(function () {
+                    // After the delay, add the "move-chat" class
+                    var chatContainer = document.getElementById("chat-container");
+                    chatContainer.classList.add("move-chat");
+
+                    var reportMessage = document.getElementById('report-message');
+                    reportMessage.style.display = 'block'; // Make the report message visible
+
+                    // Display the content of the report-message using typewriter effect
+                    displayContentWithTypewriter(`
+                    Dear Patient:
+                    
+                    The heart disease prediction report presents a comprehensive analysis of your health assessment. 
+                    Our state-of-the-art prediction model has carefully evaluated the data you provided, offering 
+                    insights into the likelihood of heart disease. 
+
+                    This report swiftly communicates a prediction outcome ('Positive' or 'Negative') and details key influencing. 
+                    Gain valuable insights into your cardiac health for informed decision-making and potential medical consultations.
+
+                                                                                        Sincerely,
+
+                                                                                        MEDIDIAGNOSIS INSIGHTS
+                                                                                        Healthcare Analytics Department
+            `);
+
+                }, 2000);
+                setTimeout(() => {
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.innerHTML = '<button id="sendEmailButton">Send to Email</button>';
+
+                 
+                    // Append the button container to the document body
+                    document.body.appendChild(buttonContainer);
+
+                    // Add click event listener to the button
+                    const sendEmailButton = document.getElementById('sendEmailButton');
+                    sendEmailButton.addEventListener('click', () => {
+                        // Handle the button click, for example, trigger an email sending function
+                        sendEmail();
+                    });
+                }, 2000);
+            }
+            // Scroll to the last message
+            scrollToBottom();
+
+            // Send user message to server
+            fetch("/get_response", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "user_message=" + userMessage,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Display bot response with typing effect
+                    typeWriter("Bot: " + data.bot_response);
+
+                    // Scroll to the last message
+                    scrollToBottom();
+                });
+
+            // Fetch the next question separately
+            fetch("/get_next_question", { method: "GET" })
+                .then(response => response.json())
+                .then(data => {
+                    // If there is a next question, show it
+                    if (data.next_question) {
+                        showQuestion(data.next_question);
+                    }
+
+                    // Scroll to the last message
+                    scrollToBottom();
+                });
+        }
+
+        // Scroll to the last message
+        function scrollToBottom() {
+            var chatContainer = document.getElementById("chat");
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Typing effect function
+        function typeWriter(message) {
+            var i = 0;
+            var speed = 50; // Speed/duration of the typing effect in milliseconds
+            var spoken = false;
+
+            function type() {
+                if (i < message.length) {
+                    document.getElementById("chat").lastChild.innerHTML += message.charAt(i);
+                    i++;
+
+                    if (!spoken) {
+                        if (message.startsWith("Bot: ")) {
+                            message2 = message.substring(5);
+                            speak(message2);
+                            spoken = true;
+                        }
+                    }
+
+                    setTimeout(type, speed);
+                }
+            }
+
+            var botMessageElement = document.createElement("p");
+            document.getElementById("chat").appendChild(botMessageElement);
+
+            type(); // Call the typing effect function
+        }
+
+        // Speak a message using the Web Speech API
+        function speak(message) {
+            var speechSynthesis = window.speechSynthesis;
+            var utterance = new SpeechSynthesisUtterance(message);
+
+            // You can customize voice, rate, and other properties here if needed
+            // utterance.voice = ...;
+            // utterance.rate = ...;
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // Initial question display
+        showQuestion("Hello, I'm MEDIA ASSIST, your dedicated Disease Prediction Assistant.");
+        
+    </script>
+
+
+</body>
+
+</html>

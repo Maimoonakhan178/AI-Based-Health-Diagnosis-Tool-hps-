@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/login.css') }}">
+    
+    <title>Health Prognosis Hub</title>
+</head>
+<body>
+
+<h1>Health Prognosis Hub</h1>
+
+<div class="box-form">
+    <div class="left">
+        <div class="overlay"></div>
+    </div>
+    <div class="right">
+        <h1>Prognosis</h1>
+        <p>Explore potential health concerns based on reported details</p>
+        <!-- Login Panel -->
+        <div class="login-panel">
+            <h2>Login</h2>
+            <form action="/login" method="post">
+                <input type="text" name="username" placeholder="Username">
+                <input type="password" name="password" placeholder="Password">
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="/register">Sign Up</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- <script>
+    var i = 0;
+    var txt = 'Explore potential health concerns based on reported details'; /* The text */
+    var speed = 50; /* The speed/duration of the effect in milliseconds */
+
+    function typeWriter() {
+        if (i < txt.length) {
+            document.getElementById("typing-text").innerHTML += txt.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        }
+    }
+
+    // Call the typing effect function
+    typeWriter();
+</script> -->
+
+</body>
+</html>

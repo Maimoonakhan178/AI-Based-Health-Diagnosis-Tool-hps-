@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPS</title>
+    <!-- Include Bootstrap CSS from CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include necessary libraries from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/styles.css') }}">
+</head>
+
+<body>
+    <header id="header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <h1 class="logo me-auto me-lg-0"><a href="index.html">HPS</a></h1>
+            <nav id="navbar">
+
+              
+                <a  href="/">Home</a>
+                <a class="active" href="/dashboard">Dashboard</a>
+                <a href="/home">Chatbot</a>
+                <a href="/about">About</a>
+                <a href="/feedback">Feedback</a>
+
+            </nav>
+            <div class="header-social-links">
+                <a href="#" class="twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="linkedin"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </header>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Sidebar Section -->
+                    <div class="col-lg-3 sidebar">
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/patients">Patients</a>
+                        <button class="dropdown-btn">Charts
+                            <i class="fa fa-caret-down"></i>
+                          </button>
+                          <div class="dropdown-container">
+                            <a href="/charts">Heart Charts</a>
+                            <a href="/PAD">PAD Charts</a>
+
+                          </div>
+
+                    </div>
+            </div>
+
+            <!-- Main Content Section -->
+            <main role="main" class="col-md-10 px-md-4 main-content">
+                <!-- Grid container for all charts -->
+          <div class ="charts">
+               <h2 >HEART EXPLORATORY DATA ANALYSIS</h2>
+               </div>
+                <div class="grid-containerch">
+                    <!-- Scatter Plot in Grid 1 -->
+                    <div class="grid-itemch">
+                        <canvas id="scatterPlot1"></canvas>
+                        <!-- Scatter Plot JavaScript code -->
+                        <script>
+                            // Get data from Flask and convert it to JSON
+                            var scatterData = {{ scatter_data | tojson | safe }};
+                    
+                            // Get the canvas elements and render the scatter plots
+                            var ctxScatter1 = document.getElementById('scatterPlot1').getContext('2d');
+                            var scatterPlot1 = new Chart(ctxScatter1, {
+                                type: 'scatter',
+                                data: {
+                                    datasets: [{
+                                        label: 'Scatter Plot',
+                                        data: scatterData,
+                                        backgroundColor: 'rgba(70, 190, 195, 0.9)', // Adjust the color as needed
+                                    }],
+                                },
+                                options: {
+                                    scales: {
+                                        x: {
+                                            type: 'linear',
+                                            position: 'bottom',
+                                            title: {
+                                                display: true,
+                                                text: 'Blood Pressure (trestbps)',
+                                                color: 'black',
+                                            },
+                                            ticks: {
+                                                color: 'black', // Set the label color to black
+                                            },
+                                        },
+                                        y: {
+                                            type: 'linear',
+                                            position: 'left',
+                                            title: {
+                                                display: true,
+                                                text: 'Cholesterol (chol)',
+                                                color: 'black',
+                                            },
+                                            ticks: {
+                                                color: 'black', // Set the label color to black
+                                            },
+                                        },
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            labels: {
+                                                font: {
+                                                    color: 'black' // Set the dataset label color to black
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            });
+                        </script>
+                    </div>
+                    
+                    
+
+                    <!-- Bar chart in Grid 2 -->
+                    <div class="grid-itemch">
+                        <canvas id="barChart"></canvas>
+                        <!-- Bar Chart JavaScript code -->
+                        <script>
+                            // Get data from Flask and convert it to JSON
+                            var barChartData = {{ bar_chart_data | tojson | safe }};
+                    
+                            // Get the canvas element and render the bar chart
+                            var ctxBarChart = document.getElementById('barChart').getContext('2d');
+                            var barChart = new Chart(ctxBarChart, {
+                                type: 'bar',
+                                data: barChartData,
+                                options: {
+                                    scales: {
+                                        x: {
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                        y: {
+                                            ticks: {
+                                                color: 'black',  // Set the y-axis label color to black
+                                            },
+                                        },
+                                    },
+                                },
+                            });
+                        </script>
+           
+                    </div>
+
+                    <!-- Radar chart in Grid 3 -->
+                    <div class="grid-itemch">
+                        <canvas id="radarChart"></canvas>
+                        <!-- Radar Chart JavaScript code -->
+                        <script>
+                            // Radar Chart
+                            var radarChartData = {{ radar_chart_data | tojson | safe }};
+                            var ctxRadar = document.getElementById('radarChart').getContext('2d');
+                            var radarChart = new Chart(ctxRadar, {
+                                type: 'radar',
+                                data: radarChartData,
+                                options: {
+                                    // Customize options as needed
+                                },
+                            });
+                        </script>
+                    </div>
+
+                    <!-- Line chart in Grid 4 -->
+                    <div class="grid-itemch">
+                        <canvas id="lineChart" height="250" ></canvas>
+                        <!-- Line Chart JavaScript code -->
+                        <script>
+                            // Line Chart
+                            var lineChartData = {{ line_chart_data | tojson | safe }};
+                            var ctxLine = document.getElementById('lineChart').getContext('2d');
+                            var lineChart = new Chart(ctxLine, {
+                                type: 'line',
+                                data: lineChartData,
+                                options: {
+                                    scales: {
+                                        x: {
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                        y: {
+                                            ticks: {
+                                                color: 'black',  // Set the y-axis label color to black
+                                            },
+                                        },
+                                    },
+                                    elements: {
+                                        point: {
+                                            radius: 0, // Set the radius to 0 to hide markers
+                                        },
+                                    },
+                                    // Customize other options as needed
+                                },
+                            });
+                        </script>
+                    </div>
+
+                 
+
+                    <!-- Age Histogram in Grid 6 -->
+                    <div class="grid-itemch">
+                        <canvas id="ageHistogram"></canvas>
+                        <script>
+                            var ageHistogramData = {{ age_histogram_data | tojson | safe }};
+                            var ctxAgeHistogram = document.getElementById('ageHistogram').getContext('2d');
+                            var ageHistogram = new Chart(ctxAgeHistogram, {
+                                type: 'bar',
+                                data: {
+                                    labels: ageHistogramData.labels,
+                                    datasets: [{
+                                        label: 'Age Distribution',
+                                        data: ageHistogramData.values,
+                                        backgroundColor: 'rgba(70, 190, 195, 0.9)' // Adjust the color as needed
+                                    }],
+                                },
+                                options: {
+                                    scales: {
+                                        x: {
+                                            type: 'linear',
+                                            position: 'bottom',
+                                            title: {
+                                                display: true,
+                                                text: 'Age',
+                                                color:'black',
+                                            },
+                                        },
+                                        x: {
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                        y: {
+                                            ticks: {
+                                                color: 'black',  // Set the y-axis label color to black
+                                            },
+                                        
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Frequency',
+                                                color:'black',
+                                            },
+                                        },
+                                    },
+                                },
+                            });
+                        </script>
+                    </div>
+
+                    <!-- Stacked Bar Chart in Grid 7 -->
+                    <div class="grid-itemch">
+                        <canvas id="stackedBarChartSlope"></canvas>
+                        <script>
+                            var stackedBarChartSlopeData = {{ stacked_bar_chart_data | tojson | safe }};
+                            var ctxStackedBarChartSlope = document.getElementById('stackedBarChartSlope').getContext('2d');
+                            var stackedBarChartSlope = new Chart(ctxStackedBarChartSlope, {
+                                type: 'bar',
+                                data: {
+                                    labels: stackedBarChartSlopeData.labels,
+                                    datasets: [{
+                                        label: 'Target 0',
+                                        data: stackedBarChartSlopeData.values[0],
+                                        backgroundColor: [
+                                            'rgba(75, 192, 192, 0.6)',
+                                            'rgba(75, 192, 192, 0.7)',
+                                            'rgba(75, 192, 192, 0.8)'
+                                        ],
+                                    }, {
+                                        label: 'Target 1',
+                                        data: stackedBarChartSlopeData.values[1],
+                                        backgroundColor: [
+                                        'rgba(255, 0, 0, 0.6)', 
+                                        'rgba(75, 192, 192, 0.6)',
+                                            'rgba(75, 192, 192, 0.6)'
+                                        ],
+                                    }],
+                                },
+                                options: {
+                                    scales: {
+                                        x: {
+                                            stacked: true,
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                        y: {
+                                            stacked: true,
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'right',
+                                        labels: {
+                                            boxWidth: 15,
+                                        },
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: "Stacked Bar Chart: Slope Distribution by Target",
+                                        fontSize: 16,
+                                        color:'black',
+                                    },
+                                },
+                            });
+                        </script>
+                    </div>
+
+                    <!-- Count Plot for 'target' column in Grid 8 -->
+                    <div class="grid-itemch">
+                        <canvas id="targetCountPlot"></canvas>
+                        <!-- Count Plot JavaScript code -->
+                        <script>
+                            var targetCountPlotData = {{ target_count_plot_data | tojson | safe }};
+                            var ctxTargetCountPlot = document.getElementById('targetCountPlot').getContext('2d');
+                            var targetCountPlot = new Chart(ctxTargetCountPlot, {
+                                type: 'bar',
+                                data: {
+                                    labels: targetCountPlotData.labels,
+                                    datasets: [{
+                                        label: 'Target Distribution',
+                                        data: targetCountPlotData.values,
+                                        backgroundColor: [
+                                        'rgba(255, 0, 0, 0.6)', 'rgba(75, 192, 192, 0.6)' // Add more shades if needed
+                                        ],
+                                    }],
+                                },
+                                options: {
+                                    scales: {
+                                        x: {
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Target',
+                                                color:'black',
+                                            },
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                        y: {
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Frequency',
+                                                color: 'black', 
+                                            },
+                                            ticks: {
+                                                color: 'black',  // Set the x-axis label color to black
+                                            },
+                                        },
+                                    },
+                                },
+                            });
+                        </script>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

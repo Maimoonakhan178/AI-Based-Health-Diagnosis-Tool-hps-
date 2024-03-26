@@ -1,0 +1,136 @@
+main{
+    padding: 50px;
+ 
+}
+form {
+    max-width: 400px;
+    margin: auto;
+    background: #f4f4f4;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 15px;
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+input[type="submit"] {
+    background: #34b7a7;
+   
+    color: #fff;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+input[type="submit"]:hover {
+    background: rgba(0, 200, 255, 0.467);
+}
+.links {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.links a {
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #fff;
+    background: #34b7a7;
+    border: 1px solid #34b7a7;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.links a:hover {
+    background-color: rgba(0, 200, 255, 0.467);
+}
+
+
+@media only screen and (max-width: 600px) {
+    body {
+        font-size: 14px;
+    }
+
+    form {
+        max-width: 100%;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        width: 100%;
+    }
+}
+
+/* ... (your existing styles) ... */
+
+form#registerForm {
+    max-width: 400px;
+    margin: auto;
+    background: #f4f4f4;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+form#registerForm label {
+    display: block;
+    margin-bottom: 15px;
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+form#registerForm input[type="text"],
+form#registerForm input[type="password"],
+form#registerForm input[type="email"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+form#registerForm input[type="submit"] {
+    background-color: #34b7a7;;
+    color: #fff;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    
+}
+h2.login {
+    font-size: 28px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Add any additional styles you desire */

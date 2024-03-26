@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>HPS</title>
+    <!-- Include Bootstrap CSS from CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+
+    <!-- Include necessary libraries from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/styles.css') }}">
+</head>
+
+<body>
+    <header id="header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <h1 class="logo me-auto me-lg-0"><a href="index.html">HPS</a></h1>
+            <nav id="navbar">
+
+              
+                <a  href="/">Home</a>
+                <a  href="/dashboard">Dashboard</a>
+                <a class="active" href="/home">Chatbot</a>
+                <a href="/about">About</a>
+                <a href="/feedback">Feedback</a>
+
+            </nav>
+            <div class="header-social-links">
+                <a href="#" class="twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="linkedin"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+      <form id="loginForm" action="{{ url_for('login') }}" method="post">
+    <h2 class="login">Login</h2>
+    <label for="loginUsername">Username</label>
+    <input type="text" id="loginUsername" name="username" required>
+
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" name="password" required>
+ 
+    <input type="submit" value="Login">
+</form>
+
+
+      <div class="links">
+          <a href="#registerForm">Don't have an account? Click here</a>
+      </div>
+      <form id="registerForm" style="display: none;" action="{{ url_for('register') }}" method="post">
+        <h2 class="login">Register</h2>
+        <label for="registerUsername">Username</label>
+        <input type="text" id="registerUsername" name="registerUsername" required>
+    
+        <label for="registerEmail">Email</label>
+        <input type="email" id="registerEmail" name="registerEmail" required>
+    
+        <label for="registerPassword">Password</label>
+        <input type="password" id="registerPassword" name="registerPassword" required>
+    
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required>
+    
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" required>
+        <label for="fullName">Age</label>
+        <input type="text" id="age" name="age" required>
+
+        <div id="registerSuccess" class="success-message" style="display: none; color: green;">
+            Registration successful! You can now login.
+        </div>
+    
+    
+        <input type="submit" value="Register">
+    </form>
+    
+      <div class="links">
+          <a href="#loginForm">Back to Login</a>
+      </div>
+  </main>
+
+<!-- ... (your existing HTML code) ... -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var loginForm = document.getElementById("loginForm");
+      var registerForm = document.getElementById("registerForm");
+      var backToLoginLink = document.querySelector('.links a[href="#loginForm"]');
+      var registerLink = document.querySelector('.links a[href="#registerForm"]');
+
+      registerLink.addEventListener('click', function() {
+          loginForm.style.display = 'none';
+          registerForm.style.display = 'block';
+          backToLoginLink.style.display = 'inline-block';
+          registerLink.style.display = 'none'; // Hide the "Register" link when on the register page
+      });
+
+      backToLoginLink.addEventListener('click', function() {
+          loginForm.style.display = 'block';
+          registerForm.style.display = 'none';
+          backToLoginLink.style.display = 'none';
+          registerLink.style.display = 'inline-block'; // Show the "Register" link when going back to login page
+      });
+
+      // Initially hide the "Back to Login" link
+      backToLoginLink.style.display = 'none';
+  });
+</script>
+
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        registerForm.addEventListener('submit', function (event) {
+            // Your logic to handle the registration (e.g., using AJAX or form submission)
+            var isRegistrationSuccessful = true; // Replace this with your actual check
+
+            if (isRegistrationSuccessful) {
+                registerSuccess.style.display = 'block'; // Show the success message
+            }
+        });
+
+
+        registerSuccess.style.display = 'none';
+    });
+</script>
+
+
+
+
+
+
+</body>
+</html>

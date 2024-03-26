@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPS</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/styles.css') }}">
+</head>
+
+<body>
+    <header id="header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <h1 class="logo me-auto me-lg-0"><a href="index.html">HPS</a></h1>
+            <nav id="navbar">
+            
+                    <a  href="/">Home</a>
+                    <a class="active" href="/dashboard">Dashboard</a>
+                    <a href="/home">Chatbot</a>
+                    <a href="/about">About</a>
+                    <a href="/feedback">Feedback</a>
+            
+            </nav>
+            <div class="header-social-links">
+              <a href="#" class="twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="linkedin"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </header>
+
+
+  
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Section -->
+            <div class="col-lg-3 sidebar">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/patients">Patients</a>
+                <button class="dropdown-btn">Charts
+                    <i class="fa fa-caret-down"></i>
+                  </button>
+                  <div class="dropdown-container">
+                    <a href="/charts">Heart Charts</a>
+                    <a href="/PAD">PAD Charts</a>
+
+                  </div>
+            </div>
+            <div class="charts">
+                <h2>Therapeutic Dose Optimization Dashboard</h2>
+                <div class="grid-container">
+                    {% for box_name, items in box_data.items() %}
+                        <div class="grid-item">
+                            <h2>{{ box_name }}</h2>
+                            {% if box_name == 'Dosage Chart' %}
+                                <canvas id="dosageChart" class="chart-container"></canvas>
+                            {% elif box_name == 'Gauges' %}
+                                <canvas id="gaugeChart" class="small-chart-container"></canvas>
+                            {% elif box_name == 'Table' %}
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                {% for key, value in items[0].items() %}
+                                                    <th>{{ key }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in items[:10] %}
+                                                <tr>
+                                                    {% for key, value in row.items() %}
+                                                        <td>{{ value }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="table-navigation">
+                                    <button id="prevButton" onclick="showPrevRows()">Previous</button>
+                                    <button id="nextButton" onclick="showNextRows()">Next</button>
+                                </div>
+                                {% elif box_name == 'HEART DISEASE' %}
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                {% for key, value in items[0].items() %}
+                                                    <th>{{ key }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in items[:10] %}
+                                                <tr>
+                                                    {% for key, value in row.items() %}
+                                                        <td>{{ value }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="table-navigation">
+                                    <button id="prevButton" onclick="showPrevRows()">Previous</button>
+                                    <button id="nextButton" onclick="showNextRows()">Next</button>
+                                </div>
+                                {% elif box_name == 'Table3' %}
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                {% for key, value in items[0].items() %}
+                                                    <th>{{ key }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in items[:10] %}
+                                                <tr>
+                                                    {% for key, value in row.items() %}
+                                                        <td>{{ value }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="table-navigation">
+                                    <button id="prevButton" onclick="showPrevRows()">Previous</button>
+                                    <button id="nextButton" onclick="showNextRows()">Next</button>
+                                </div>
+                            {% else %}
+                                <ul>
+                                    {% for item in items %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        
+            <script>
+{% if 'Dosage Chart' in box_data %}
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctxDosage = document.getElementById('dosageChart').getContext('2d');
+        
+        // Hardcoded heart rate data with categories (good, optimal, bad)
+        var heartRateData = [80, 95, 110, 125, 140];
+
+        // Categorize heart rates
+        var heartRateCategories = heartRateData.map(function (rate) {
+            if (rate < 90) {
+                return 'Good';
+            } else if (rate < 120) {
+                return 'Optimal';
+            } else {
+                return 'Bad';
+            }
+        });
+
+        var dosageChart = new Chart(ctxDosage, {
+            type: 'bar',
+            data: {
+                labels: heartRateCategories,
+                datasets: [{
+                    label: 'Heart Rate',
+                    data: heartRateData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+
+
+
+
+            
+                {% endif %}
+        
+        
+    // Example of initializing a gauge-like chart
+    {% if 'Gauges' in box_data %}
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctxGauge = document.getElementById('gaugeChart').getContext('2d');
+        var gaugeChart = new Chart(ctxGauge, {
+            type: 'doughnut',
+            data: {
+                labels: ['Blood Pressure', 'Heart Rate', 'Stress Level', 'Empty'],
+                datasets: [{
+                    data: [120, 75, 98, 100 - (120 + 75 + 98)],
+                    backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'transparent'],
+                    circumference: 180,
+                    rotation: 270,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                cutoutPercentage: 60,
+                tooltips: {
+                    enabled: false
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
+                }
+            }
+        });
+    });
+
+
+                {% endif %}
+                    var currentStartIndex = 0;
+                    var rowsPerPage = 10;
+                    var tableData = {{ box_data['Table']|tojson|safe }};
+                    
+                    function showRows(startIndex) {
+                        var endIndex = startIndex + rowsPerPage;
+                        var rowsToDisplay = tableData.slice(startIndex, endIndex);
+                
+                        var tableBody = document.querySelector('.table-container tbody');
+                        tableBody.innerHTML = '';
+                
+                        for (var i = 0; i < rowsToDisplay.length; i++) {
+                            var row = rowsToDisplay[i];
+                            var rowHtml = '<tr>';
+                            
+                            for (var key in row) {
+                                rowHtml += '<td>' + row[key] + '</td>';
+                            }
+                
+                            rowHtml += '</tr>';
+                            tableBody.innerHTML += rowHtml;
+                        }
+                    }
+                
+                    function showPrevRows() {
+                        if (currentStartIndex - rowsPerPage >= 0) {
+                            currentStartIndex -= rowsPerPage;
+                            showRows(currentStartIndex);
+                        }
+                    }
+                
+                    function showNextRows() {
+                        if (currentStartIndex + rowsPerPage < tableData.length) {
+                            currentStartIndex += rowsPerPage;
+                            showRows(currentStartIndex);
+                        }
+                    }
+        
+                    // Initial display
+                    showRows(currentStartIndex);
+                </script>
+            </script>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+
+</html>
